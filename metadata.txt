@@ -1,0 +1,40 @@
+# This file contains metadata for your plugin.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=SplashTool Result Loader
+qgisMinimumVersion=3.0
+description=Load and symbolize results from a SplashTool output directory
+version=0.1
+author=Tim Schneider
+email=t.schneider@splashtool.de
+
+about=SplashTool creates flow accumulation paths and water depths in sinks during heavy rainfall. This plugin identifies the latest iteration results from a SplashTool output directory and loads the symbolized results in the current project.
+
+tracker=https://github.com/schneidertim/splashtool_result_loader/issues
+repository=https://github.com/schneidertim/splashtool_result_loader
+# End of mandatory metadata
+
+# Recommended items:
+
+hasProcessingProvider=no
+# Uncomment the following line and add your changelog:
+# changelog=
+
+# Tags are comma separated with spaces allowed
+tags=python, SplashTool, Flowpath, Fliessweganalyse
+
+homepage=https://www.splashtool.de/
+category=Plugins
+icon=icon.png
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+
+Category of the plugin: Raster, Vector, Database or Web
+# category=Raster
+
+# If the plugin can run on QGIS Server.
+server=False
+
