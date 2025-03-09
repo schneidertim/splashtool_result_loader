@@ -2,6 +2,7 @@ from qgis.PyQt.QtWidgets import QAction, QFileDialog, QMessageBox
 from qgis.core import QCoreApplication, QTranslator, QgsProject, QgsRasterLayer, QgsVectorLayer
 import os
 import re
+from .resources import *
 
 class SplashToolResultLoader:
     """QGIS Plugin Implementation."""
