@@ -16,7 +16,7 @@ tracker=https://github.com/schneidertim/splashtool_result_loader/issues
 repository=https://github.com/schneidertim/splashtool_result_loader
 # End of mandatory metadata
 
-license=MIT
+license=GPL V3
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
