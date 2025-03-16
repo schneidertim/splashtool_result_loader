@@ -170,9 +170,10 @@ class SplashToolResultLoader:
             "flowvectors": "flowvectors_\\d+.shp"
         }
         latest_files = {}
+        all_flowvectors = []
 
         # Updated pattern to match your file naming convention
-        pattern = re.compile(r"(\d+)(flow_xy_out\.tif|_wd_out\.tif|flowvectors_\d+\.shp)$")
+        pattern = re.compile(r"(\d+)(flow_xy_out\.tif|wd_out\.tif|flowvectors_\d+\.shp)$")
         
         files_in_dir = os.listdir(input_folder)
         QgsMessageLog.logMessage(f"Found {len(files_in_dir)} files in directory", "SplashTool Result Loader", Qgis.Info)
@@ -184,12 +185,14 @@ class SplashToolResultLoader:
                 counter = int(counter)
                 
                 # Determine the file type based on the suffix
-                if file_suffix.endswith("_wd_out.tif"):
+                if file_suffix.endswith("wd_out.tif"):
                     ftype = "wd"
                 elif file_suffix.endswith("flow_xy_out.tif"):
                     ftype = "flow_xy"
                 elif "flowvectors_" in file_suffix:
                     ftype = "flowvectors"
+                    all_flowvectors.append({"filename": file, "counter": counter})
+                    continue  # Skip adding to latest_files
                 
                 if ftype not in latest_files or latest_files[ftype]["counter"] < counter:
                     latest_files[ftype] = {"filename": file, "counter": counter}
@@ -198,10 +201,20 @@ class SplashToolResultLoader:
 
         QgsMessageLog.logMessage(f"Latest files found: {latest_files}", "SplashTool Result Loader", Qgis.Info)
 
+        # Load regular layers
         for ftype, data in latest_files.items():
             file_path = os.path.join(input_folder, data["filename"])
             QgsMessageLog.logMessage(f"Attempting to load: {file_path}", "SplashTool Result Loader", Qgis.Info)
             self.load_layer(file_path, ftype)
+
+        # Load all flowvectors layers with their specific names
+        for data in all_flowvectors:
+            file_path = os.path.join(input_folder, data["filename"])
+            # Extract the suffix number from the filename (e.g., "flowvectors_32.shp" -> "32")
+            suffix = re.search(r'flowvectors_(\d+)\.shp$', data["filename"]).group(1)
+            layer_name = f"flowvectors_{suffix}"
+            QgsMessageLog.logMessage(f"Attempting to load flowvector: {file_path}", "SplashTool Result Loader", Qgis.Info)
+            self.load_layer(file_path, layer_name)
 
     def load_layer(self, file_path, ftype):
         if file_path.endswith(".tif"):
@@ -220,7 +233,9 @@ class SplashToolResultLoader:
         QgsProject.instance().addMapLayer(layer)
         QgsMessageLog.logMessage(f"Successfully loaded layer: {file_path}", "SplashTool Result Loader", Qgis.Info)
         
-        self.apply_symbology(layer, ftype)
+        # For style application, we need to use the generic "flowvectors" type if it's a flowvector layer
+        style_type = "flowvectors" if "flowvectors_" in ftype else ftype
+        self.apply_symbology(layer, style_type)
 
     def apply_symbology(self, layer, ftype):
         # Map layer types to their style file names
