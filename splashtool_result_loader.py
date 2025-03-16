@@ -156,6 +156,17 @@ class SplashToolResultLoader:
             self.iface.removeToolBarIcon(action)
         self.iface.removePluginMenu(self.tr("Custom Plugins"), self.action)
 
+    def get_next_group_name(self):
+        """Find the next available group name."""
+        root = QgsProject.instance().layerTreeRoot()
+        base_name = "SplashTool"
+        counter = 0
+        while True:
+            name = base_name if counter == 0 else f"{base_name}_{counter}"
+            if not root.findGroup(name):
+                return name
+            counter += 1
+
     def run(self):
         input_folder = QFileDialog.getExistingDirectory(None, self.tr("Select Input Folder"))
         if not input_folder:
@@ -201,20 +212,50 @@ class SplashToolResultLoader:
 
         QgsMessageLog.logMessage(f"Latest files found: {latest_files}", "SplashTool Result Loader", Qgis.Info)
 
-        # Load regular layers
-        for ftype, data in latest_files.items():
-            file_path = os.path.join(input_folder, data["filename"])
-            QgsMessageLog.logMessage(f"Attempting to load: {file_path}", "SplashTool Result Loader", Qgis.Info)
-            self.load_layer(file_path, ftype)
+        # Create a new group
+        root = QgsProject.instance().layerTreeRoot()
+        group_name = self.get_next_group_name()
+        group = root.addGroup(group_name)
 
-        # Load all flowvectors layers with their specific names
+        # Dictionary to store loaded layers
+        loaded_layers = {
+            'flowvectors': [],
+            'wd': None,
+            'flow_xy': None
+        }
+
+        # Load flowvectors layers
+        all_flowvectors.sort(key=lambda x: x['counter'], reverse=True)  # Sort by counter in descending order
         for data in all_flowvectors:
             file_path = os.path.join(input_folder, data["filename"])
-            # Extract the suffix number from the filename (e.g., "flowvectors_32.shp" -> "32")
             suffix = re.search(r'flowvectors_(\d+)\.shp$', data["filename"]).group(1)
             layer_name = f"flowvectors_{suffix}"
-            QgsMessageLog.logMessage(f"Attempting to load flowvector: {file_path}", "SplashTool Result Loader", Qgis.Info)
-            self.load_layer(file_path, layer_name)
+            layer = self.load_layer(file_path, layer_name)
+            if layer:
+                loaded_layers['flowvectors'].append(layer)
+
+        # Load wd and flow layers
+        for ftype, data in latest_files.items():
+            file_path = os.path.join(input_folder, data["filename"])
+            layer = self.load_layer(file_path, ftype)
+            if layer:
+                loaded_layers[ftype] = layer
+
+        # Add layers to group in specific order
+        # First add flowvectors (they're already sorted in descending order)
+        for layer in loaded_layers['flowvectors']:
+            QgsProject.instance().addMapLayer(layer, False)
+            group.addLayer(layer)
+
+        # Add wd layer
+        if loaded_layers['wd']:
+            QgsProject.instance().addMapLayer(loaded_layers['wd'], False)
+            group.addLayer(loaded_layers['wd'])
+
+        # Add flow layer
+        if loaded_layers['flow_xy']:
+            QgsProject.instance().addMapLayer(loaded_layers['flow_xy'], False)
+            group.addLayer(loaded_layers['flow_xy'])
 
     def load_layer(self, file_path, ftype):
         if file_path.endswith(".tif"):
@@ -223,19 +264,20 @@ class SplashToolResultLoader:
             layer = QgsVectorLayer(file_path, ftype, "ogr")
         else:
             QgsMessageLog.logMessage(f"Unsupported file type: {file_path}", "SplashTool Result Loader", Qgis.Warning)
-            return
+            return None
 
         if not layer.isValid():
             QgsMessageLog.logMessage(f"Failed to load layer: {file_path}", "SplashTool Result Loader", Qgis.Critical)
             QMessageBox.critical(None, self.tr("Error"), self.tr("Failed to load {}").format(file_path))
-            return
+            return None
 
-        QgsProject.instance().addMapLayer(layer)
         QgsMessageLog.logMessage(f"Successfully loaded layer: {file_path}", "SplashTool Result Loader", Qgis.Info)
         
         # For style application, we need to use the generic "flowvectors" type if it's a flowvector layer
         style_type = "flowvectors" if "flowvectors_" in ftype else ftype
         self.apply_symbology(layer, style_type)
+        
+        return layer
 
     def apply_symbology(self, layer, ftype):
         # Map layer types to their style file names
