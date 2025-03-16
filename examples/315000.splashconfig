@@ -1,0 +1,35 @@
+### SplashTool outfile ###
+### This files provides a basic water balance and may
+### additionally be used to load configuration options
+### for restarting an iteration using previous output
+### files as infiles.
+
+### Water Balance ###
+initial volume:			491650.06
+outflow from sinks:		17527.03
+remaining volume:		474745.31
+volume error:			0.127%
+total flow accumulation:	5.110E+08	
+
+### Parameters used for restart ###
+dem_path=C:/Projekte/Splash_GIS-Projekte/dgm.tif
+outdir=C:/Projekte/SplashOut
+wd=C:/Projekte/SplashOut\315000wd_out.tif
+create_sinks=1
+output_triggers=
+flowdir_distances=16.0000;32.0000;64.0000
+flowdir_minacc=20.0
+iteration_checkpoint=5000
+flow=C:/Projekte/SplashOut\315000flow_out.tif
+flow_x=C:/Projekte/SplashOut\315000flow_x_out.tif
+flow_y=C:/Projekte/SplashOut\315000flow_y_out.tif
+nodata=-88888.000000000
+i=315000
+init_vol=491650.06250
+sinkflow=17527.03185
+moving=0.00100
+frequent_output=0
+wd_max_output=0
+computation_mode=GPU
+legacy_flowacc=0
+
