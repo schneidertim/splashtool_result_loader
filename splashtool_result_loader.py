@@ -283,15 +283,34 @@ class SplashToolResultLoader:
         # Map layer types to their style file names
         style_files = {
             "wd": "wd.qml",
-            "flow_xy": "flow.qml",  # Changed from flow_xy.qml to flow.qml
-            "flowvectors": "flowvectors.qml"
+            "flow_xy": "flow.qml",
         }
         
-        style_file = style_files.get(ftype)
-        if not style_file:
-            QgsMessageLog.logMessage(f"No style mapping for layer type: {ftype}", 
-                                   "SplashTool Result Loader", Qgis.Warning)
-            return
+        if ftype == "flowvectors":
+            # Extract the numeric value from the layer name
+            match = re.search(r'flowvectors_(\d+)', layer.name())
+            if match:
+                value = int(match.group(1))
+                # Choose style file based on thresholds
+                if value <= 16:
+                    style_file = "flowvectors_16.qml"
+                elif value <= 32:
+                    style_file = "flowvectors_32.qml"
+                elif value <= 64:
+                    style_file = "flowvectors_64.qml"
+                else:  # value > 64, including > 128
+                    style_file = "flowvectors_128.qml"
+            else:
+                # Fallback to default if no number found
+                style_file = "flowvectors.qml"
+                QgsMessageLog.logMessage(f"No numeric value found in layer name, using default style", 
+                                       "SplashTool Result Loader", Qgis.Warning)
+        else:
+            style_file = style_files.get(ftype)
+            if not style_file:
+                QgsMessageLog.logMessage(f"No style mapping for layer type: {ftype}", 
+                                       "SplashTool Result Loader", Qgis.Warning)
+                return
         
         qml_path = os.path.join(self.plugin_dir, "styles", style_file)
         QgsMessageLog.logMessage(f"Attempting to apply style from: {qml_path}", 
