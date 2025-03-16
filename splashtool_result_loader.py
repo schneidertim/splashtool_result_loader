@@ -47,14 +47,28 @@ class SplashToolResultLoader:
         return QCoreApplication.translate('SplashToolResultLoader', message)
 
     def init_locale(self):
-        # Get system locale using QLocale instead of QApplication
-        locale = QLocale().name()  # This will return e.g. "de_DE"
-        locale_path = os.path.join(os.path.dirname(__file__), 'i18n', f"{locale}.qm")
-    
-        if os.path.exists(locale_path):
-            self.translator = QTranslator()
-            self.translator.load(locale_path)
-            QCoreApplication.instance().installTranslator(self.translator)
+        # Get system locale using QLocale
+        locale = QLocale()
+        locale_name = locale.name()  # This will return e.g. "de_DE"
+        language = locale_name.split('_')[0]  # This will return e.g. "de"
+        
+        # Try both the full locale name and just the language code
+        locale_paths = [
+            os.path.join(os.path.dirname(__file__), 'i18n', f"{locale_name}.qm"),
+            os.path.join(os.path.dirname(__file__), 'i18n', f"{language}.qm")
+        ]
+        
+        for locale_path in locale_paths:
+            if os.path.exists(locale_path):
+                self.translator = QTranslator()
+                if self.translator.load(locale_path):
+                    QCoreApplication.instance().installTranslator(self.translator)
+                    QgsMessageLog.logMessage(f"Successfully loaded translation from {locale_path}", 
+                                          "SplashTool Result Loader", Qgis.Info)
+                    break
+                else:
+                    QgsMessageLog.logMessage(f"Failed to load translation from {locale_path}", 
+                                          "SplashTool Result Loader", Qgis.Warning)
 
     def add_action(
             self,
