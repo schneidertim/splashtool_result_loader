@@ -170,10 +170,10 @@ class SplashToolResultLoader:
     def run(self):
         input_folder = QFileDialog.getExistingDirectory(None, self.tr("Select Input Folder"))
         if not input_folder:
-            QgsMessageLog.logMessage("No folder selected", "SplashTool Result Loader", Qgis.Info)
+            QgsMessageLog.logMessage(self.tr("No folder selected"), "SplashTool Result Loader", Qgis.Info)
             return
 
-        QgsMessageLog.logMessage(f"Selected folder: {input_folder}", "SplashTool Result Loader", Qgis.Info)
+        QgsMessageLog.logMessage(self.tr("Selected folder: {}").format(input_folder), "SplashTool Result Loader", Qgis.Info)
         
         file_types = {
             "wd": "_wd_out.tif",
@@ -187,7 +187,8 @@ class SplashToolResultLoader:
         pattern = re.compile(r"(\d+)(flow_xy_out\.tif|wd_out\.tif|flowvectors_\d+\.shp)$")
         
         files_in_dir = os.listdir(input_folder)
-        QgsMessageLog.logMessage(f"Found {len(files_in_dir)} files in directory", "SplashTool Result Loader", Qgis.Info)
+        QgsMessageLog.logMessage(self.tr("Found {} files in directory").format(len(files_in_dir)), 
+                               "SplashTool Result Loader", Qgis.Info)
 
         for file in files_in_dir:
             match = pattern.match(file)
@@ -207,10 +208,11 @@ class SplashToolResultLoader:
                 
                 if ftype not in latest_files or latest_files[ftype]["counter"] < counter:
                     latest_files[ftype] = {"filename": file, "counter": counter}
-                    QgsMessageLog.logMessage(f"Found matching file: {file} (type: {ftype}, counter: {counter})", 
-                                          "SplashTool Result Loader", Qgis.Info)
+                    QgsMessageLog.logMessage(self.tr("Found matching file: {} (type: {}, counter: {})").format(
+                        file, ftype, counter), "SplashTool Result Loader", Qgis.Info)
 
-        QgsMessageLog.logMessage(f"Latest files found: {latest_files}", "SplashTool Result Loader", Qgis.Info)
+        QgsMessageLog.logMessage(self.tr("Latest files found: {}").format(latest_files), 
+                               "SplashTool Result Loader", Qgis.Info)
 
         # Create a new group
         root = QgsProject.instance().layerTreeRoot()
@@ -263,15 +265,18 @@ class SplashToolResultLoader:
         elif file_path.endswith(".shp"):
             layer = QgsVectorLayer(file_path, ftype, "ogr")
         else:
-            QgsMessageLog.logMessage(f"Unsupported file type: {file_path}", "SplashTool Result Loader", Qgis.Warning)
+            QgsMessageLog.logMessage(self.tr("Unsupported file type: {}").format(file_path), 
+                                   "SplashTool Result Loader", Qgis.Warning)
             return None
 
         if not layer.isValid():
-            QgsMessageLog.logMessage(f"Failed to load layer: {file_path}", "SplashTool Result Loader", Qgis.Critical)
+            QgsMessageLog.logMessage(self.tr("Failed to load layer: {}").format(file_path), 
+                                   "SplashTool Result Loader", Qgis.Critical)
             QMessageBox.critical(None, self.tr("Error"), self.tr("Failed to load {}").format(file_path))
             return None
 
-        QgsMessageLog.logMessage(f"Successfully loaded layer: {file_path}", "SplashTool Result Loader", Qgis.Info)
+        QgsMessageLog.logMessage(self.tr("Successfully loaded layer: {}").format(file_path), 
+                               "SplashTool Result Loader", Qgis.Info)
         
         # For style application, we need to use the generic "flowvectors" type if it's a flowvector layer
         style_type = "flowvectors" if "flowvectors_" in ftype else ftype
@@ -303,30 +308,30 @@ class SplashToolResultLoader:
             else:
                 # Fallback to default if no number found
                 style_file = "flowvectors.qml"
-                QgsMessageLog.logMessage(f"No numeric value found in layer name, using default style", 
+                QgsMessageLog.logMessage(self.tr("No numeric value found in layer name, using default style"), 
                                        "SplashTool Result Loader", Qgis.Warning)
         else:
             style_file = style_files.get(ftype)
             if not style_file:
-                QgsMessageLog.logMessage(f"No style mapping for layer type: {ftype}", 
+                QgsMessageLog.logMessage(self.tr("No style mapping for layer type: {}").format(ftype), 
                                        "SplashTool Result Loader", Qgis.Warning)
                 return
         
         qml_path = os.path.join(self.plugin_dir, "styles", style_file)
-        QgsMessageLog.logMessage(f"Attempting to apply style from: {qml_path}", 
+        QgsMessageLog.logMessage(self.tr("Attempting to apply style from: {}").format(qml_path), 
                                "SplashTool Result Loader", Qgis.Info)
         
         if os.path.exists(qml_path):
             success = layer.loadNamedStyle(qml_path)
             if success[1]:  # loadNamedStyle returns a tuple (bool, str)
-                QgsMessageLog.logMessage(f"Successfully applied style to {layer.name()}", 
+                QgsMessageLog.logMessage(self.tr("Successfully applied style to {}").format(layer.name()), 
                                        "SplashTool Result Loader", Qgis.Info)
             else:
-                QgsMessageLog.logMessage(f"Failed to apply style to {layer.name()}", 
+                QgsMessageLog.logMessage(self.tr("Failed to apply style to {}").format(layer.name()), 
                                        "SplashTool Result Loader", Qgis.Warning)
             layer.triggerRepaint()
         else:
-            QgsMessageLog.logMessage(f"Style file not found: {qml_path}", 
+            QgsMessageLog.logMessage(self.tr("Style file not found: {}").format(qml_path), 
                                    "SplashTool Result Loader", Qgis.Warning)
             QMessageBox.warning(None, self.tr("Warning"), 
                               self.tr("QML file not found for {}: {}").format(ftype, qml_path))
