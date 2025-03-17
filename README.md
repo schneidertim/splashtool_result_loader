@@ -72,7 +72,7 @@ pyrcc5 -o resources.py resources.qrc
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GPL V3 License - see the [LICENSE](LICENSE) file for details.
 
 ## Author
 
