@@ -13,7 +13,7 @@ email=t.schneider@splashtool.de
 about=SplashTool creates flow accumulation paths and water depths in sinks during heavy rainfall. This plugin identifies the latest iteration results from a SplashTool output directory and loads the symbolized results in the current project.
 
 tracker=https://github.com/schneidertim/splashtool_result_loader/issues
-repository=https://github.com/schneidertim/splashtool_result_loader
+repository=https://github.com/schneidertim/splashtool_result_loader/tree/main/splashtool_result_loader
 # End of mandatory metadata
 
 license=GPL V3
