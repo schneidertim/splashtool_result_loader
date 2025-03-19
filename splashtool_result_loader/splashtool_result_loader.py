@@ -182,7 +182,7 @@ class SplashToolResultLoader:
             counter += 1
 
     def run(self):
-        input_folder = QFileDialog.getExistingDirectory(None, self.tr("Select Input Folder"))
+        input_folder = QFileDialog.getExistingDirectory(None, self.tr("Select Folder containing SplashTool results"))
         if not input_folder:
             QgsMessageLog.logMessage(self.tr("No folder selected"), "SplashTool Result Loader", Qgis.Info)
             return
