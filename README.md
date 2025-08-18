@@ -80,7 +80,10 @@ Tim Schneider (t.schneider@splashtool.de)
 
 ## Changelog
 
-### Version 0.1
+### Version 0.1.1 (2024-03-14)
+- Improved file open dialog with clearer instructions specifying that the SplashTool output directory is required
+
+### Version 0.1.0 (2024-03-14)
 - Initial release
 - Basic functionality for loading SplashTool results
 - Layer symbolization
