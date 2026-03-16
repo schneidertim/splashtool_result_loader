@@ -12,7 +12,7 @@ import os
 import re
 
 # Local imports
-from .resources import *
+from splashtool_result_loader import resources
 
 # This plugin is used to load the latest files from the SplashTool output folder
 # It will load the files into the current QGIS project
@@ -25,17 +25,12 @@ class SplashToolResultLoader:
         :param iface: An interface instance that will be passed to this class
             which provides the hook by which you can manipulate the QGIS
             application at run time.
-        :type iface: QgsInterface
+        :type iface: QgisInterface
         """
         self.init_locale() # load localisation
         self.iface = iface
-        self.action = QAction(self.tr("Load Latest Files"), iface.mainWindow())
-        self.action.triggered.connect(self.run)
         self.plugin_dir = os.path.dirname(__file__)
-                
-        # Check if plugin was started the first time in current QGIS session
-        # Must be set in initGui() to survive plugin reloads
-        self.first_start = None
+        self.actions = []
 
     def tr(self, message):
         """Get the translation for a string using Qt translation API.
@@ -147,7 +142,6 @@ class SplashToolResultLoader:
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-        self.actions = []
         self.menu = self.tr('&SplashTool Result Loader')
         
         icon_path = ':/plugins/splashtool_result_loader/icon.png'
@@ -158,9 +152,6 @@ class SplashToolResultLoader:
             parent=self.iface.mainWindow()
         )
 
-        # Will be set False in run()
-        self.first_start = True
-
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
@@ -168,7 +159,6 @@ class SplashToolResultLoader:
                 self.tr('&SplashTool Result Loader'),
                 action)
             self.iface.removeToolBarIcon(action)
-        self.iface.removePluginMenu(self.tr("Custom Plugins"), self.action)
 
     def get_next_group_name(self):
         """Find the next available group name."""
@@ -336,12 +326,12 @@ class SplashToolResultLoader:
                                "SplashTool Result Loader", Qgis.Info)
         
         if os.path.exists(qml_path):
-            success = layer.loadNamedStyle(qml_path)
-            if success[1]:  # loadNamedStyle returns a tuple (bool, str)
+            ok, msg = layer.loadNamedStyle(qml_path)
+            if ok:
                 QgsMessageLog.logMessage(self.tr("Successfully applied style to {}").format(layer.name()), 
                                        "SplashTool Result Loader", Qgis.Info)
             else:
-                QgsMessageLog.logMessage(self.tr("Failed to apply style to {}").format(layer.name()), 
+                QgsMessageLog.logMessage(self.tr("Failed to apply style to {}: {}").format(layer.name(), msg), 
                                        "SplashTool Result Loader", Qgis.Warning)
             layer.triggerRepaint()
         else:

@@ -4,7 +4,8 @@
 
 [general]
 name=SplashTool Result Loader
-qgisMinimumVersion=3.0
+qgisMinimumVersion=3.22
+qgisMaximumVersion=4.99
 description=Load and symbolize results from a SplashTool output directory
 version=0.1.2
 author=Tim Schneider
